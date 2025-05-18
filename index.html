@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Reazione al Fischio - Calcio d'inizio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7D4pr2IK8RZ9jj59jfoTm5uaZgWCI0yYrs" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76A2YpOJpPurKnnlIY6AdI6LP0UAnbBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous"></script>
+
   <style>
     body {
       margin: 0;
@@ -76,8 +79,11 @@
   </div>
 
   <div id="info">
-    <p>Clicca il centrocampo <strong>appena appare l'arbitro</strong>!</p>
+    <p>Inserisci il tuo nome: <input type="text" id="nomeUtente" placeholder="Nome"></p>
+    <button id="iniziaGioco">Inizia il gioco</button>
     <p>Tempi di reazione: <span id="risultati">[ ]</span></p>
+    <p>Media: <span id="media">0</span> ms</p>
+    <p>Livello di reattività: <span id="livello">N/A</span></p>
   </div>
 
   <script>
@@ -85,11 +91,27 @@
     const pallone = document.getElementById("pallone");
     const fischietto = document.getElementById("fischietto");
     const risultati = document.getElementById("risultati");
+    const mediaSpan = document.getElementById("media");
+    const livelloSpan = document.getElementById("livello");
+    const nomeUtente = document.getElementById("nomeUtente");
+    const iniziaGioco = document.getElementById("iniziaGioco");
 
     let startTime = 0;
     let ready = false;
     let timeoutID;
     let tempi = [];
+
+    function calcolaMedia() {
+      if (tempi.length === 0) return 0;
+      return tempi.reduce((a, b) => a + b, 0) / tempi.length;
+    }
+
+    function determinaLivello(media) {
+      if (media < 300) return "Eccellente";
+      if (media < 500) return "Buono";
+      if (media < 700) return "Medio";
+      return "Lento";
+    }
 
     function avviaRound() {
       fischietto.style.display = "none";
@@ -105,6 +127,15 @@
       }, delay);
     }
 
+    iniziaGioco.addEventListener("click", () => {
+      if (nomeUtente.value.trim() === "") {
+        alert("Per favore, inserisci il tuo nome prima di iniziare!");
+        return;
+      }
+      iniziaGioco.style.display = "none"; // Nasconde il pulsante dopo l'inizio
+      avviaRound();
+    });
+
     campo.addEventListener("click", () => {
       if (!ready) {
         alert("Hai cliccato troppo presto! Aspetta l'arbitro...");
@@ -113,16 +144,18 @@
       } else {
         const reactionTime = Date.now() - startTime;
         tempi.push(reactionTime);
-        risultati.textContent = JSON.stringify(tempi);
+        risultati.textContent = tempi.join(", ");
+
+        const media = calcolaMedia();
+        mediaSpan.textContent = media.toFixed(2);
+        livelloSpan.textContent = determinaLivello(media);
+
         fischietto.style.display = "none";
         pallone.style.top = "90%"; // Sposta il pallone verso il basso
         ready = false;
         setTimeout(avviaRound, 1500);
       }
     });
-
-    // Inizia il primo round
-    avviaRound();
   </script>
 </body>
 </html>
